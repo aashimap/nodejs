@@ -28,7 +28,7 @@ router.post(
 
     console.log(req.body);
 
-    await new Employee(data).save();
+    await new Employee({ id: data.id }).save(data);
 
     // await Employee.forge({
     //   ).save();
