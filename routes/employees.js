@@ -1,4 +1,5 @@
 const express = require("express");
+const bookshelf = require("./db");
 const router = express.Router();
 const { check, validationResult } = require("express-validator");
 const Employee = require("./models");
@@ -16,50 +17,53 @@ router.get("/", (req, res) => {
 
 router.post(
   "/",
-  [check("id").exists().withMessage("ID is required")],
+  [check("id").notEmpty().withMessage("ID is required")],
   async (req, res) => {
-    // try {
-    const err = validationResult(req);
-    if (!err.isEmpty()) {
-      return res.status(400).json({ errors: err.array() });
+    try {
+      const err = validationResult(req);
+      if (!err.isEmpty()) {
+        return res.status(400).json({ errors: err.array() });
+      }
+      const data = req.body;
+      await new Employee().save(data);
+      Employee.fetchAll().then((results) => {
+        res.json(results);
+      });
+    } catch (error) {
+      console.error("Error saving employee:", error);
+      res
+        .status(500)
+        .json({ error: "An error occurred while saving employee details" });
     }
+  }
+);
 
-    const data = req.body;
+router.put(
+  "/",
+  [check("id").notEmpty().withMessage("ID is required")],
+  async (req, res) => {
+    try {
+      const err = validationResult(req);
+      if (!err.isEmpty()) {
+        return res.status(400).json({ errors: err.array() });
+      }
+      const id = req.body.id;
 
-    console.log(req.body);
+      Employee.where({ id: id })
+        .save({ ...req.body }, { patch: true })
+        .then(function (x) {
+          console.log(x.toJSON());
+        });
 
-    await new Employee({ id: data.id }).save(data);
-
-    // await Employee.forge({
-    //   ).save();
-
-    // const employee = new Employee({
-    //   id: 1,
-    //   name: "ABC",
-    //   department: "ABC",
-    //   salary: 40000,
-    // });
-
-    // employee
-    //   .save()
-    //   .then((savedUser) => {
-    //     console.log(savedUser);
-    //   })
-    //   .catch((error) => {
-    //     console.log("Employee error:", error);
-    //   });
-
-    // const employees = await Employee.fetchAll();
-    res.json(true);
-    // } catch (error) {
-    //     if (error.message === "ID already exists") {
-    //       return res.status(409).json({ error: "ID already exists" });
-    //     }
-    //     console.error("Error inserting employee data:", error);
-
-    //     res.status(400).json({ error: "Error inserting employee data" });
-    //   }
-    // }
+      Employee.fetchAll().then((results) => {
+        res.json(results);
+      });
+    } catch (error) {
+      console.error("Error saving employee:", error);
+      res
+        .status(500)
+        .json({ error: "An error occurred while saving employee details" });
+    }
   }
 );
 
