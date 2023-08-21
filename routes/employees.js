@@ -47,17 +47,20 @@ router.put(
       if (!err.isEmpty()) {
         return res.status(400).json({ errors: err.array() });
       }
-      const id = req.body.id;
-
-      Employee.where({ id: id })
-        .save({ ...req.body }, { patch: true })
-        .then(function (x) {
-          console.log(x.toJSON());
+      await Employee.where("id", req.body.id)
+        .fetch()
+        .then((employee) => {
+          if (employee) {
+            Employee.where("id", req.body.id)
+              .save({ ...req.body }, { patch: true })
+              .then(function (x) {
+                console.log(x.toJSON());
+              });
+          }
+          Employee.fetchAll().then((results) => {
+            res.json(results);
+          });
         });
-
-      Employee.fetchAll().then((results) => {
-        res.json(results);
-      });
     } catch (error) {
       console.error("Error saving employee:", error);
       res
