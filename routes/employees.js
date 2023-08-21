@@ -67,6 +67,25 @@ router.put(
   }
 );
 
+router.delete(
+  "/",
+  [check("id").notEmpty().withMessage("ID is required")],
+  async (req, res) => {
+    try {
+      await Employee.where("id", req.body.id)
+        .fetch()
+        .then((employee) => {
+          if (employee) {
+            let deleteData = Employee.where("id", req.body.id).destroy();
+            res.json(deleteData);
+          }
+        });
+    } catch (error) {
+      res.send(error);
+    }
+  }
+);
+
 // router.get("/", (req, res) => {
 //   const query = "SELECT * FROM employees";
 //   connection.query(query, (err, results) => {
